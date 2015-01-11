@@ -1,0 +1,177 @@
+Webhoneypot documentation rev.01
+
+Home page
+http://code.google.com/p/webhoneypot/
+
+Contact e-mail: jullrich@sans.edu (please mention "webhoneypot" in the subject)
+
+Conventions
+square brackets [] will enclose file paths or other settings that are specific to your installation and will likely need to me modified.
+
+
+Theory of operation
+Web-based applications are an increasingly popular attack vector.  This research project aims to gather information on in the wild application level attacks to supplement the extensive data collection Dshield already collects on network level activity.  
+
+The webhoneypot itself is a simple PHP page that collects the URL and header information from all requests and forwards it to the Dshield database.  To gather the attention of would-be attackers, the webhoneypot will respond to the common paths and filenames associated with several applications.  These template sites are intended to be indexed by the various search engines, so that when an attacker is looking for installations of a particular application the webhoneypot may show up in the results.  Initial testing shows that even without search engines as a source of traffic, people are scanning large portions of the IP version 4 address space looking for vulnerable sites.
+
+The actual execution of the script is straightforward.  When any request is received, the portion of the URL after the hostname -- for example in http://isc.sans.org/robots.txt the script will look at robots.txt -- and attempts to match it against a set of regular expressions listed in templates\config.txt.  If an expression matches then the appropriate template is returned to the requester.  If none of the regular expressions match, then the default template is returned.  The information from the request is collected in the log file specified  within etc\config.local, and if the username and password for your Dshield login are correctly entered the requested URL and any HTTP headers will be sent to the Dshield database.
+
+License: GPL Version 2.0
+
+Prerequisites
+1. dshield.org account
+2. Publicly routable IP address that can receive requests on TCP port 80.  Dynamic IP addresses are ok, but you should sign up with a dynamic dns provider like dyndns so that you can provide a constant hostname.
+3. Linux or Windows machine with a webserver, PHP5 support and the curl extension installed.
+
+Install
+
+This installation section should be applicable to nearly any LAMP (Linux, Apache, MySQL, PHP) application platform, but the exact paths are taken from Fedora Core, and will need to be altered to match your environment.
+
+1.  Extract the archive file honeypot.tgz to a temporary directory or into the directory for a virtual host that you plan to create.  You will find 4 subdirectories 
+docs - All related documentation including this file
+html - This folder contains the actual php file that is the honeypot itself
+logs - This is the default location for local logfiles
+templates - This is the location of the configuration files and the static templates that are sent to clients
+lib - This is the location of includes, config and client update scripts
+
+As you plan where to place these folders please note *only* the index.php file under the html folder is meant to be placed inside your document root.  the other folders should be placed outside of the document root as they will only be accessed by the script, never called directly.  Please double check during your configuration that you are only making the html folder accessible and not the entire honeypot folder.
+
+2.  Edit etc\config.local and edit the userid (userid=...) and password (password=...) to match your account information for your Dshield login; If you provide the password, the script automatically converts it into a hashed password replacing the password entry.  Also, complete the full path to the location where you will be keeping your log files (logdir=...) if different from the default location logs/.
+If you are using this as a dedicated honeypot the path would be /var/www/logs/honeypot.log
+If you are using a virtual host the path would be /var/www/[name of virtual host]/logs/honeypot.log
+
+3.  Edit your apache configuration file /etc/httpd/httpd.conf ??  
+If you are using a dedicated server your document root will already exist in the default location /var/www/html.  Verify your other settings against the ones recommended in the file docs\honeypot.dshield.org.  Then add the Aliasmatch  command "AliasMatch ^/(.*) /var/www/html/index.php" before any other alias commands in your configuration file.  This will cause any following alias commands to be ignored so you can comment them out if you wish.  
+
+If you are using a virtual host you can start with the example virtual host under docs\honeypot.dshield.org.conf and modify it fit your environment.  Make sure you change all of the paths to match your environment such as /var/www/[name of virtualhost]/html.  
+
+4.  Now copy the four folders and contents into the appropriate folders
+For the dedicated server
+
+/opt/webhoneypot
+	/html
+	/docs
+	/logs
+	/templates
+	/lib
+
+For a virtual host
+
+/var/www/[name of virtual host]/
+				/html
+				/docs
+				/logs
+				/templates
+
+5.  Set the appropriate permissions.  The userid that your webserver runs under -- usually apache -- will need read permissions to the template folder.  Use the chown command to make apache the owner of the templates folder, then use the chmod command to give the apache user read access to the files.  (chmod + r)  The apache user will also need write access to the logs folder.  Once again change the owner to apache with the chown command and give apache write access with chmod + w.
+
+6.  Test the site.  Open a webbrowser and navigate to your webhoneypot site.  You should be get back the default template which states that you are using the demo server and welcome to phpmyadmin.  Try http://[webhoneypot ip or dns name]/robots.txt and you should get back template 104 which is a robots.txt file.  If you get an error instead the most common problems are an incorrect path in one of your configuration files, a permissions problem writing to the logfile, or you did not install the curl extension that is required to post the results back to Dshield.  You should be able to determine which one it is by the webpage returned from the server or your logfile if you have one.
+
+7.  Check your logfile.  If everything is operating properly, you should see the details of which templates are being matched, and the client request successfully posted to http://isc1.sans.org/weblogs/post.html.  
+  
+8.  Once you have completed your testing list any operational honeypots under your DShield profile page.
+
+Windows Instalation  - This section of the documentation is still under development.
+
+This installation section should be applicable to any version of Windows version 2000 (IIS version 5) or later, the paths are default locations, and will need to be altered to match your environment.  Please make sure you have fulfilled the prerequisite tasks listed earlier.  At this point the instructions assume you have at least windows and IIS installed and working.
+
+1.  If you have not already installed PHP, download the Windows installer from php.net.  Install the PHP processor with the IIS/ISAPI filter and the curl extension.  If you are running IIS 6 or later, open the Internet Services Manager console.  Under ?allowed extensions? make sure that PHP is set to allowed.
+
+2.  Other things that need to be checked:
+the default site or virtual host should be using Anonymous authentication only.  Make sure to note the username that the site will use.  By default it will be IUSR_[machinename] where [machinename] is the hostname of your computer.
+The default page for the site should be changed to index.php 
+
+
+3.  Extract the archive file to a temporary location.  You will find 4 subdirectories 
+docs - All related documentation including this file
+html - This folder contains the actual php file that is the honeypot itself
+logs - This is the default location for local logfiles
+templates - This is the location of the configuration files and the static templates that are sent to clients
+lib - This is the location of includes, config and client update scripts
+
+As you plan where to place these folders please note *only* the index.php file under the html folder is meant to be placed inside the wwwroot directory or the root directory of your virtual host.  the other folders should be placed outside of the document root as they will only be accessed by the script, never called directly.  Please double check during your configuration that you are only making the contents of the html folder accessible and not the entire honeypot folder.  
+
+4.  Now copy the four folders - or their contents - into the appropriate folders
+For a dedicated server
+
+c:\inetsrv
+	\docs
+	\lib
+	\logs
+	\templates
+	\wwwroot\index.php
+
+For a virtual host
+
+c:\[path to virtualhost]
+			\docs
+			\logs
+			\templates
+			\wwwroot\index.php
+
+5.  Fix permissions.  The IUSR_[machinename] account will need read permissions to the template directory, and write permissions to the logs directory.
+
+Steps 6-8 are further explained in the Linux installation instructions
+6.  Test  
+7.  Verify proper operation via the log file
+8.  List as operational
+
+Tested configurations
+1.  Whatever ISC is running
+
+2.  Fedora Core 8 + apache + php 5 with the curl extension
+
+3.  Litespeed - Ref Ryan email 9/24/08 - no configuration supplied
+
+4.  Maybe soon Windows - mine doesn't work but someone else claimed to have it.
+
+5.  Ubuntu 8 - Ref Clara email 
+	notes default apache directories are under /srv/www
+	apache config is under /etc/apache2/sites-enabled/000-default 
+	synaptics can install curl using package php5-curl
+
+Contribute
+
+If you see interesting traffic, try to identify what application it is looking for and help us create a template.  You can use Firefox's File -> save as HTML command to save a static copy of the webpage, and add the appropriate regular expression in templates\config.txt
+
+Templates numbers are currently allocated as 
+0 - do nothing. just return an empty page. Do not collect the request.
+1 - return the default template, template #1, and do not collect the request
+2-99 reserved for special uses (like 0-1)
+100-999,999 reserved for templates published by DShield.org
+Curt - 1000 through 1099
+Mason- 1100 - 1199
+Clara- 1200 - 1299
+Ryan - 1300 - 1399
+Jason - 1400 - 1499
+Johannes - 1500 - 1599
+1,000,000-2,000,000 reserved for your own use
+> 2,000,000 reserved. Do not use (maybe assigned in the future)
+
+
+FAQ
+
+Q.  Is this legal?
+A.  We're not your lawyer.  In this author's opinion, it is fundamentally similar to running an IDS on your network.
+
+Q.  How do I get the latest update?
+A.  The prefered method right now is to download the latest versoin from DShield. Log in to your account,
+    go to the "my info" page and use the link provided. There may be an auto-update script soon.
+    For beta versions, use our Google code repository. If you would like to contribute changes, please
+    use the Google code repository as well. However, it may be broken at any time. The code is typically
+    not yet tested.
+
+Q.  Does it run on Windows/IIS/PHP?
+A.  It should with some minor modifications.  IIS does not support the same redirection of all requests that apache does.   
+
+Q.  Should I run this on my production environment?
+A.  That depends on your risk tolerance.  If your organization is willing to approve it, then the program itself is designed so that it can run as a virtual host under apache.  You could assign unused IP addresses to the honeypot virtual host.
+
+Q.  Can I run this at home?
+A.  Several people already are.  If you can forward port 80 to your honeypot machine, then it will work.
+
+Q.  What else can I do with it?
+A.  That's up to your imagination.  If you are already using DNS to send traffic to known malicious domains to 127.0.0.1, you could redirect it to the honeypot machine to alert when things try to phone home.  If you come up with a creative use let us know.
+
+Q.  How can I contribute "templates"? 
+A.  E-mail them to jullrich@sans.edu

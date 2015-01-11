@@ -1,0 +1,87 @@
+#
+#  Template configuration
+#
+#    each line starts with either a regular expression (indicated by enclosing it in / / ), or
+# it starts with a static string. Next follows a TAB and a number. The number indicates the template
+# number.
+#
+#    strings are processed in the order in which they show up in this file. First match wins.
+# The 'config.local' file is processed first (if it exists).
+#
+# This file should be in your 'template' directory. For example /var/www/template/config.txt
+#
+# !!! DO NOT PLACE INSIDE YOUR DOCUMENT ROOT !!!
+#
+
+
+
+
+[config]
+updateurl=http://isc.sans.org/webhoneypot/update.html
+url=http://isc1.sans.org/weblogs/post.html
+filter_referred_requests=ico, gif, jpg
+#
+#    Template numbers:
+#
+#   0 - do nothing. just return an empty page. Do not collect the request.
+#   1 - return the default template, template #1, and do not collect the request
+#   2-99 reserved for special uses (like 0-1)
+#   100-999,999 reserved for templates published by DShield.org
+# 1,000,000-2,000,000 reserved for your own use
+# > 2,000,000 reserved. Do not use (maybe assigned in the future)
+#
+
+[rules]
+/PHPBB(.*)/i							101
+/(index.[^.]+$)/						102
+/images\/(.*)/							103
+/(robots.txt$)/							104
+awstats									105
+xampp									106
+/freepbx\/(.*)/							1500
+trix									1500
+asterisk								1500
+pbx										1500
+/horde\-[\d\.]+\/(.*)/          		1600
+/horde[\d]*\/(.*)/              		1600
+/e?mail[sz]?\/(.*)/             		1600
+/(messagesL.php[\d]*$)/         		1601
+/phpMyChat[\-\d\.]*[\/]+chat\/(.*)/i	1601
+/chat[\d]*\/(.*)/               		1601
+/wordpress\/(xmlrpc.php$)/      		1602
+/drupal\/(xmlrpc.php$)/         		1602
+/bug[s]?\/(.*)/                 		1603
+/bugtrack[er]*\/(.*)/           		1603
+/support\/(.*)/                 		1603
+/(login_page.php$)/             		1603
+/mantis[bt]*\/(.*)/             		1603
+/\.asp$/					107
+/\.asp\?/					107
+/\.aspx$/					107
+/\.aspx\?/					107
+
+# These are the names templates are exported in the sitemaps / hidden links
+# They should match a corresponding regex, otherwise a warning will be issued!
+[basenames]
+101=PHPBB/index.html
+105=awstats/index.html
+106=xampp/index.html
+107=sql/test.asp?id=5
+1500=freepbx/index.html
+1500=trix/index.html
+1500=asterisk/index.html
+1500=pbx/index.html
+1600=horde/index.html
+1601=phpMyChat/index.html
+1602=wordpress/index.html
+1602=drupal/index.html
+1603=mantisbt/index.html
+
+[tokens]
+DOMAIN=bigboard.com
+
+[linkurls]
+http://honeypot.dshield.org/test.asp?id=1
+http://honeypot.dshield.org/what.php?x=1
+http://honeypot.dshield.org/phpbb
+http://honeypot.dshield.org/cart.asp?id=1
